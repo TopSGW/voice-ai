@@ -5,7 +5,7 @@ import './App.css'
 function App() {
   return (
     <div className="App">
-      <h1>Speech to Text AI with Vite + React</h1>
+      <h1>Speech to Text AI</h1>
       <div className="card">
         <AudioRecorder />
       </div>
