@@ -24,103 +24,87 @@ h1 {
   margin-bottom: 1rem;
 }
 
-.conversation {
-  max-height: 300px;
+.chat-container {
+  display: flex;
+  flex-direction: column;
+  height: 500px;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+}
+
+.conversation-history {
+  flex-grow: 1;
   overflow-y: auto;
-  margin-bottom: 1rem;
   padding: 1rem;
   background-color: #f9f9f9;
-  border-radius: 5px;
-  text-align: left;
 }
 
-.conversation p {
-  margin-bottom: 0.5rem;
-}
-
-.conversation .user {
-  color: #2980b9;
-}
-
-.conversation .assistant {
-  color: #27ae60;
-}
-
-.card {
-  padding: 1rem;
-  background-color: #ecf0f1;
-  border-radius: 5px;
+.message {
+  max-width: 70%;
   margin-bottom: 1rem;
+  clear: both;
 }
 
-.audio-recorder {
-  margin-bottom: 1rem;
+.message.user {
+  float: right;
 }
 
-.record-button {
-  background-color: #3498db;
-  color: white;
-  border: none;
+.message.assistant {
+  float: left;
+}
+
+.message-content {
   padding: 0.5rem 1rem;
-  border-radius: 5px;
-  cursor: pointer;
-  transition: background-color 0.3s;
+  border-radius: 18px;
+  display: inline-block;
 }
 
-.record-button:hover {
-  background-color: #2980b9;
+.user .message-content {
+  background-color: #007bff;
+  color: white;
 }
 
-.record-button.recording {
-  background-color: #e74c3c;
+.assistant .message-content {
+  background-color: #e9e9eb;
+  color: #333;
 }
 
-.record-button:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
-}
-
-.text-input-form {
+.chat-input-form {
   display: flex;
-  margin-top: 1rem;
+  padding: 1rem;
+  background-color: #fff;
+  border-top: 1px solid #ddd;
 }
 
-.text-input-form input {
+.chat-input {
   flex-grow: 1;
   padding: 0.5rem;
-  border: 1px solid #bdc3c7;
-  border-radius: 5px 0 0 5px;
+  border: 1px solid #ddd;
+  border-radius: 20px;
   font-size: 1rem;
 }
 
-.text-input-form button {
-  background-color: #2ecc71;
+.chat-submit-button {
+  padding: 0.5rem 1rem;
+  margin-left: 0.5rem;
+  background-color: #007bff;
   color: white;
   border: none;
-  padding: 0.5rem 1rem;
-  border-radius: 0 5px 5px 0;
+  border-radius: 20px;
   cursor: pointer;
   transition: background-color 0.3s;
 }
 
-.text-input-form button:hover {
-  background-color: #27ae60;
-}
-
-.text-input-form button:disabled {
-  background-color: #bdc3c7;
-  cursor: not-allowed;
+.chat-submit-button:hover {
+  background-color: #0056b3;
 }
 
 .instructions {
   font-size: 0.9rem;
   color: #7f8c8d;
   margin-top: 1rem;
-}
-
-.error-message {
-  color: #e74c3c;
-  margin-top: 0.5rem;
+  text-align: left;
 }
 
 @media (max-width: 768px) {
@@ -132,7 +116,7 @@ h1 {
     padding: 1rem;
   }
 
-  .conversation {
-    max-height: 200px;
+  .chat-container {
+    height: 400px;
   }
 }
