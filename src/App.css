@@ -85,10 +85,9 @@ h1 {
   font-size: 1rem;
 }
 
-.chat-submit-button {
+.chat-submit-button, .voice-button {
   padding: 0.5rem 1rem;
   margin-left: 0.5rem;
-  background-color: #007bff;
   color: white;
   border: none;
   border-radius: 20px;
@@ -96,8 +95,33 @@ h1 {
   transition: background-color 0.3s;
 }
 
+.chat-submit-button {
+  background-color: #007bff;
+}
+
 .chat-submit-button:hover {
   background-color: #0056b3;
+}
+
+.voice-button {
+  background-color: #28a745;
+}
+
+.voice-button:hover {
+  background-color: #218838;
+}
+
+.voice-button.listening {
+  background-color: #dc3545;
+}
+
+.voice-button.listening:hover {
+  background-color: #c82333;
+}
+
+.voice-button:disabled {
+  background-color: #6c757d;
+  cursor: not-allowed;
 }
 
 .instructions {
@@ -118,5 +142,19 @@ h1 {
 
   .chat-container {
     height: 400px;
+  }
+
+  .chat-input-form {
+    flex-wrap: wrap;
+  }
+
+  .chat-input {
+    flex-basis: 100%;
+    margin-bottom: 0.5rem;
+  }
+
+  .chat-submit-button, .voice-button {
+    flex-basis: calc(50% - 0.25rem);
+    margin: 0;
   }
 }
