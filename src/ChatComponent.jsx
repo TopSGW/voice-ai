@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
+import { FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
 
 const ChatComponent = () => {
   const [userInput, setUserInput] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -50,6 +52,7 @@ const ChatComponent = () => {
 
   const sendMessage = async (message) => {
     try {
+      setIsLoading(true);
       const newUserMessage = { role: 'user', content: message };
       setConversationHistory(prev => [...prev, newUserMessage]);
 
@@ -66,6 +69,8 @@ const ChatComponent = () => {
       speakMessage(ai_response);
     } catch (error) {
       console.error('Error sending message:', error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -97,6 +102,15 @@ const ChatComponent = () => {
             <div className="message-content">{message.content}</div>
           </div>
         ))}
+        {isLoading && (
+          <div className="message assistant">
+            <div className="message-content loading">
+              <div className="loading-dots">
+                <span>.</span><span>.</span><span>.</span>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       <form onSubmit={handleSubmit} className="chat-input-form">
         <input
@@ -105,15 +119,19 @@ const ChatComponent = () => {
           onChange={handleInputChange}
           placeholder="Type your message here..."
           className="chat-input"
+          disabled={isLoading}
         />
-        <button type="submit" className="chat-submit-button">Send</button>
+        <button type="submit" className="chat-submit-button" disabled={isLoading}>
+          Send
+        </button>
         <button
           type="button"
           onClick={toggleListening}
           className={`voice-button ${isListening ? 'listening' : ''}`}
-          disabled={isSpeaking}
+          disabled={isSpeaking || isLoading}
+          aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
         >
-          {isListening ? 'Stop' : 'Start'} Voice
+          {isListening ? <FaMicrophoneSlash /> : <FaMicrophone />}
         </button>
       </form>
     </div>
