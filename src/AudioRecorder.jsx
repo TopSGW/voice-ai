@@ -1,10 +1,11 @@
 import React, { useState, useEffect, useRef } from 'react';
+import PropTypes from 'prop-types';
 import { logError } from './errorLogger';
 
-const AudioRecorder = () => {
-  const [transcription, setTranscription] = useState('');
+const AudioRecorder = ({ onTranscript, disabled }) => {
   const [isRecording, setIsRecording] = useState(false);
   const [error, setError] = useState('');
+  const [interimTranscript, setInterimTranscript] = useState('');
   const recognitionRef = useRef(null);
 
   useEffect(() => {
@@ -21,18 +22,22 @@ const AudioRecorder = () => {
         for (let i = event.resultIndex; i < event.results.length; ++i) {
           if (event.results[i].isFinal) {
             finalTranscript += event.results[i][0].transcript;
+            onTranscript(finalTranscript);
           } else {
             interimTranscript += event.results[i][0].transcript;
           }
         }
 
-        setTranscription(finalTranscript + interimTranscript);
+        setInterimTranscript(interimTranscript);
       };
 
       recognitionRef.current.onerror = (event) => {
         const errorMessage = `Speech recognition error: ${event.error}`;
         setError(errorMessage);
         logError(new Error(errorMessage));
+        if (event.error === 'not-allowed') {
+          setError('Microphone access denied. Please allow microphone access to use this feature.');
+        }
       };
     } else {
       setError('Speech recognition is not supported in this browser.');
@@ -41,15 +46,23 @@ const AudioRecorder = () => {
 
     return () => {
       if (recognitionRef.current) {
-        recognitionRef.current.stop();
+        recognitionRef.current.abort();
       }
     };
-  }, []);
+  }, [onTranscript]);
+
+  const toggleRecording = () => {
+    if (isRecording) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   const startRecording = () => {
     setError('');
-    setTranscription('');
     setIsRecording(true);
+    setInterimTranscript('');
     recognitionRef.current.start();
   };
 
@@ -59,26 +72,37 @@ const AudioRecorder = () => {
   };
 
   return (
-    <div>
-      <h2>Real-time Speech-to-Text</h2>
-      <button onClick={startRecording} disabled={isRecording}>
-        Start Recording
+    <div className="audio-recorder">
+      <button 
+        onClick={toggleRecording} 
+        disabled={disabled}
+        className={`record-button ${isRecording ? 'recording' : ''}`}
+        aria-label={isRecording ? 'Stop speaking' : 'Start speaking'}
+        aria-pressed={isRecording}
+      >
+        {isRecording ? 'Stop Speaking' : 'Start Speaking'}
       </button>
-      <button onClick={stopRecording} disabled={!isRecording}>
-        Stop Recording
-      </button>
-      <div>
-        <h3>Transcription:</h3>
-        <p>{transcription || 'No transcription yet'}</p>
-      </div>
+      {interimTranscript && (
+        <div className="interim-transcript" aria-live="polite">
+          <p>{interimTranscript}</p>
+        </div>
+      )}
       {error && (
-        <div style={{ color: 'red' }}>
-          <h3>Error:</h3>
+        <div className="error-message" role="alert">
           <p>{error}</p>
         </div>
       )}
     </div>
   );
+};
+
+AudioRecorder.propTypes = {
+  onTranscript: PropTypes.func.isRequired,
+  disabled: PropTypes.bool,
+};
+
+AudioRecorder.defaultProps = {
+  disabled: false,
 };
 
 export default AudioRecorder;
