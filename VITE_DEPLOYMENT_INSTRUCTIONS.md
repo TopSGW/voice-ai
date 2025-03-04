@@ -43,7 +43,7 @@ This guide will help you deploy your built Vite application using PM2 on an Ubun
    ```
 
 6. **Create a PM2 Ecosystem File on Your Server**
-   In the same directory as your `dist` folder, create a file named `ecosystem.config.js`:
+   In the same directory as your `dist` folder, create a file named `ecosystem.config.cjs`:
    ```javascript
    module.exports = {
      apps: [{
@@ -58,28 +58,31 @@ This guide will help you deploy your built Vite application using PM2 on an Ubun
      }]
    }
    ```
-   This configuration tells PM2 to use `serve` to host your `dist` folder on port 8080.
+   Note: We're using `.cjs` extension to ensure PM2 treats this as a CommonJS module.
 
-7. **Start Your Application with PM2**
-   In the directory containing `ecosystem.config.js` and the `dist` folder, run:
+7. **Modify package.json**
+   If your `package.json` file contains `"type": "module"`, remove this line or change it to `"type": "commonjs"`. This ensures that PM2 can properly read the ecosystem file.
+
+8. **Start Your Application with PM2**
+   In the directory containing `ecosystem.config.cjs` and the `dist` folder, run:
    ```
-   pm2 start ecosystem.config.js
+   pm2 start ecosystem.config.cjs
    ```
 
-8. **Save the PM2 Process List and Set Up Startup Script**
+9. **Save the PM2 Process List and Set Up Startup Script**
    This ensures your app starts automatically if the server reboots:
    ```
    pm2 save
    sudo pm2 startup systemd
    ```
 
-9. **Check the Status of Your Application**
-   ```
-   pm2 list
-   pm2 monit
-   ```
+10. **Check the Status of Your Application**
+    ```
+    pm2 list
+    pm2 monit
+    ```
 
-10. **View Logs**
+11. **View Logs**
     ```
     pm2 logs vite-app
     ```
@@ -106,23 +109,28 @@ To update your application after making changes:
 
 ## Troubleshooting Common Issues
 
-1. **Application not accessible**: 
-   - Check if the correct port is open in your firewall
-   - Ensure the `PM2_SERVE_PORT` in `ecosystem.config.js` matches the port you're trying to access
+1. **PM2 Error: File ecosystem.config.js malformated**
+   If you encounter an error about ES Modules when starting PM2, ensure you've followed these steps:
+   - Name your ecosystem file `ecosystem.config.cjs` instead of `ecosystem.config.js`
+   - Remove `"type": "module"` from your `package.json` file or change it to `"type": "commonjs"`
 
-2. **Blank page or 404 errors**: 
-   - Verify that `PM2_SERVE_SPA` is set to 'true' in `ecosystem.config.js`
+2. **Application not accessible**: 
+   - Check if the correct port is open in your firewall
+   - Ensure the `PM2_SERVE_PORT` in `ecosystem.config.cjs` matches the port you're trying to access
+
+3. **Blank page or 404 errors**: 
+   - Verify that `PM2_SERVE_SPA` is set to 'true' in `ecosystem.config.cjs`
    - Check if `PM2_SERVE_HOMEPAGE` is correctly set to '/index.html'
 
-3. **Changes not reflected after update**: 
+4. **Changes not reflected after update**: 
    - Make sure you've replaced the entire `dist` folder with the new build
    - Clear your browser cache or try in an incognito window
 
-4. **PM2 process not starting**: 
+5. **PM2 process not starting**: 
    - Check PM2 logs: `pm2 logs vite-app`
    - Ensure Node.js and PM2 are correctly installed and up to date
 
-5. **Assets not loading**: 
+6. **Assets not loading**: 
    - Check if your Vite configuration uses the correct base path
    - Verify that all assets are correctly referenced in your code
 
