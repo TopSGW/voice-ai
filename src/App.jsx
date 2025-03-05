@@ -5,7 +5,7 @@ import './App.css'
 function App() {
   return (
     <div className="App">
-      <h1>SkillsFuture and Workforce Singapore AI Assistant</h1>
+      <h1>SSG-WSG CALL ME BACK</h1>
       <ChatComponent />
       <p className="instructions">
         1. Type your message in the text box to begin your conversation with the AI assistant.<br />
