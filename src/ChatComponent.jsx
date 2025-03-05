@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
-import { FaMicrophone, FaMicrophoneSlash } from 'react-icons/fa';
+import { FaMicrophone, FaMicrophoneSlash, FaPaperPlane } from 'react-icons/fa';
 
 const ChatComponent = () => {
   const [userInput, setUserInput] = useState('');
@@ -9,6 +9,7 @@ const ChatComponent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const recognitionRef = useRef(null);
+  const chatContainerRef = useRef(null);
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -38,6 +39,12 @@ const ChatComponent = () => {
       }
     };
   }, []);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop = chatContainerRef.current.scrollHeight;
+    }
+  }, [conversationHistory]);
 
   const handleInputChange = (e) => {
     setUserInput(e.target.value);
@@ -95,43 +102,57 @@ const ChatComponent = () => {
   };
 
   return (
-    <div className="chat-container">
-      <div className="conversation-history">
+    <div className="flex flex-col h-[600px] bg-slate-800 rounded-xl shadow-2xl overflow-hidden transition-all duration-300 hover:shadow-purple-500/20">
+      <div ref={chatContainerRef} className="flex-1 overflow-y-auto p-6 space-y-6 chat-container">
         {conversationHistory.map((message, index) => (
-          <div key={index} className={`message ${message.role}`}>
-            <div className="message-content">{message.content}</div>
+          <div key={index} className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'} animate-fade-in`}>
+            <div className={`max-w-[80%] rounded-lg p-4 ${
+              message.role === 'user' 
+                ? 'bg-gradient-to-r from-orange-500 to-pink-600 text-white' 
+                : 'bg-slate-700 text-purple-200'
+            } shadow-md`}>
+              {message.content}
+            </div>
           </div>
         ))}
         {isLoading && (
-          <div className="message assistant">
-            <div className="message-content loading">
-              <div className="loading-dots">
-                <span>.</span><span>.</span><span>.</span>
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-slate-700 text-purple-200 rounded-lg p-4 shadow-md">
+              <div className="flex space-x-2">
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce"></div>
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.2s'}}></div>
+                <div className="w-3 h-3 bg-purple-400 rounded-full animate-bounce" style={{animationDelay: '0.4s'}}></div>
               </div>
             </div>
           </div>
         )}
       </div>
-      <form onSubmit={handleSubmit} className="chat-input-form">
+      <form onSubmit={handleSubmit} className="flex items-center p-4 bg-slate-900">
         <input
           type="text"
           value={userInput}
           onChange={handleInputChange}
           placeholder="Type your message here..."
-          className="chat-input"
+          className="flex-1 bg-slate-800 text-white rounded-l-lg px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500 transition-all"
           disabled={isLoading}
         />
-        <button type="submit" className="chat-submit-button" disabled={isLoading}>
-          Send
+        <button
+          type="submit"
+          className="bg-gradient-to-r from-orange-500 to-pink-600 text-white px-6 py-3 rounded-r-lg hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500"
+          disabled={isLoading}
+        >
+          <FaPaperPlane className="w-5 h-5" />
         </button>
         <button
           type="button"
           onClick={toggleListening}
-          className={`voice-button ${isListening ? 'listening' : ''}`}
+          className={`ml-2 p-3 rounded-full ${
+            isListening ? 'bg-red-500' : 'bg-green-500'
+          } text-white hover:opacity-90 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-purple-500`}
           disabled={isSpeaking || isLoading}
           aria-label={isListening ? 'Stop voice input' : 'Start voice input'}
         >
-          {isListening ? <FaMicrophoneSlash /> : <FaMicrophone />}
+          {isListening ? <FaMicrophoneSlash className="w-5 h-5" /> : <FaMicrophone className="w-5 h-5" />}
         </button>
       </form>
     </div>
