@@ -10,9 +10,9 @@ function App() {
         <header className="text-center mb-12 animate-fade-in">
           <div className="flex items-center justify-center mb-4 bg-white rounded-lg p-4 shadow-md">
             <img src="/logo.jpg" alt="SSG-WSG Logo" className="h-16 mr-4" />
-            <h1 className="text-4xl md:text-5xl font-bold text-blue-600">
+            <span className="text-3xl sm:text-4xl md:text-5xl font-bold text-blue-600">
               SSG-WSG CALL ME BACK
-            </h1>
+            </span>
           </div>
         </header>
         
