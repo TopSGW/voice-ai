@@ -63,7 +63,7 @@ const ChatComponent = () => {
       const newUserMessage = { role: 'user', content: message };
       setConversationHistory(prev => [...prev, newUserMessage]);
 
-      const response = await axios.post('http://3.27.124.165:8000/chat', {
+      const response = await axios.post('http://3.106.129.114:8000/chat', {
         user_input: message,
         conversation_history: conversationHistory,
       });
