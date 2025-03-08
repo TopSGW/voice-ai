@@ -26,25 +26,20 @@ const ChatComponent = () => {
           .map(result => result[0].transcript)
           .join('');
         setTranscript(currentTranscript);
-        
-        // Reset the timeout on each result
-        if (timeoutRef.current) clearTimeout(timeoutRef.current);
-        timeoutRef.current = setTimeout(() => {
-          if (currentTranscript.trim()) {
-            handleSubmit(new Event('submit'));
-          }
-        }, 3000); // 1.5 seconds of silence to trigger submission
+      };
+
+      recognitionRef.current.onend = () => {
+        if (isCallActive && transcript.trim()) {
+          handleSubmit(new Event('submit'));
+        }
+        if (isCallActive) {
+          recognitionRef.current.start();
+        }
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsListening(false);
-      };
-
-      recognitionRef.current.onend = () => {
-        if (isCallActive) {
-          recognitionRef.current.start();
-        }
       };
     } else {
       console.log('Speech recognition not supported');
@@ -58,7 +53,7 @@ const ChatComponent = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isCallActive]);
+  }, [isCallActive, transcript]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
