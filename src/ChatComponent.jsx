@@ -58,7 +58,7 @@ const ChatComponent = () => {
     setConversationHistory(prev => [...prev, { role: 'user', content: input }]);
 
     try {
-      const response = await axios.post('/api/chat', { user_input: input });
+      const response = await axios.post('http://3.106.129.114:8000/chat', { user_input: input });
       const ai_response = response.data.ai_response;
 
       setConversationHistory(prev => ([...prev, { role: 'assistant', content: ai_response }]));
