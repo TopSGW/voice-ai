@@ -25,7 +25,7 @@ const ChatComponent = () => {
       recognitionRef.current.onresult = (event) => {
         const currentTranscript = Array.from(event.results)
           .map(result => result[0].transcript)
-          .join('');
+          .join(' ');
         setTranscript(currentTranscript);
         lastSpeechRef.current = Date.now();
 
@@ -39,7 +39,7 @@ const ChatComponent = () => {
           if (currentTranscript.trim()) {
             handleSubmit(new Event('submit'));
           }
-        }, 2000); // 1 second of silence to trigger submission
+        }, 2000); // 2 seconds of silence to trigger submission
       };
 
       recognitionRef.current.onend = () => {
@@ -197,9 +197,9 @@ const ChatComponent = () => {
           </div>
         )}
       </div>
-      {isCallActive && transcript && (
+      {isCallActive && (
         <div className="bg-yellow-100 p-2 text-sm text-gray-800 border-t border-yellow-200">
-          <p><strong>Current transcript:</strong> {transcript}</p>
+          <p><strong>Real-time transcript:</strong> {transcript}</p>
         </div>
       )}
       <form onSubmit={handleSubmit} className="bg-white p-3 flex items-center space-x-2">
