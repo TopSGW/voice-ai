@@ -34,7 +34,7 @@ const ChatComponent = () => {
           setIsListening(false);
           handleUserInput(currentTranscript.trim());
           setTranscript('');
-        }, 1000); // 1 second of silence triggers send
+        }, 2500); // 2.5 second of silence triggers send
       };
 
       recognitionRef.current.onerror = (event) => {
