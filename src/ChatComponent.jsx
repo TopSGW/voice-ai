@@ -12,6 +12,7 @@ const ChatComponent = () => {
   const [transcript, setTranscript] = useState('');
   const recognitionRef = useRef(null);
   const chatContainerRef = useRef(null);
+  const timeoutRef = useRef(null);
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -25,11 +26,25 @@ const ChatComponent = () => {
           .map(result => result[0].transcript)
           .join('');
         setTranscript(currentTranscript);
+        
+        // Reset the timeout on each result
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          if (currentTranscript.trim()) {
+            handleSubmit(new Event('submit'));
+          }
+        }, 3000); // 1.5 seconds of silence to trigger submission
       };
 
       recognitionRef.current.onerror = (event) => {
         console.error('Speech recognition error', event.error);
         setIsListening(false);
+      };
+
+      recognitionRef.current.onend = () => {
+        if (isCallActive) {
+          recognitionRef.current.start();
+        }
       };
     } else {
       console.log('Speech recognition not supported');
@@ -39,8 +54,11 @@ const ChatComponent = () => {
       if (recognitionRef.current) {
         recognitionRef.current.stop();
       }
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
     };
-  }, []);
+  }, [isCallActive]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -56,9 +74,22 @@ const ChatComponent = () => {
     e.preventDefault();
     const input = transcript || userInput;
     if (!input.trim()) return;
+
+    // Stop listening temporarily
+    if (recognitionRef.current && isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+
     await handleUserInput(input);
     setUserInput('');
     setTranscript('');
+
+    // Resume listening if call is still active
+    if (isCallActive) {
+      recognitionRef.current.start();
+      setIsListening(true);
+    }
   };
 
   const handleUserInput = async (input) => {
