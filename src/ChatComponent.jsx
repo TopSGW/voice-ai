@@ -13,6 +13,7 @@ const ChatComponent = () => {
   const recognitionRef = useRef(null);
   const chatContainerRef = useRef(null);
   const timeoutRef = useRef(null);
+  const lastSpeechRef = useRef(Date.now());
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -26,12 +27,22 @@ const ChatComponent = () => {
           .map(result => result[0].transcript)
           .join('');
         setTranscript(currentTranscript);
+        lastSpeechRef.current = Date.now();
+
+        // Clear any existing timeout
+        if (timeoutRef.current) {
+          clearTimeout(timeoutRef.current);
+        }
+
+        // Set a new timeout to detect end of speech
+        timeoutRef.current = setTimeout(() => {
+          if (currentTranscript.trim()) {
+            handleSubmit(new Event('submit'));
+          }
+        }, 2000); // 1 second of silence to trigger submission
       };
 
       recognitionRef.current.onend = () => {
-        if (isCallActive && transcript.trim()) {
-          handleSubmit(new Event('submit'));
-        }
         if (isCallActive) {
           recognitionRef.current.start();
         }
@@ -53,7 +64,7 @@ const ChatComponent = () => {
         clearTimeout(timeoutRef.current);
       }
     };
-  }, [isCallActive, transcript]);
+  }, [isCallActive]);
 
   useEffect(() => {
     if (chatContainerRef.current) {
@@ -69,6 +80,11 @@ const ChatComponent = () => {
     e.preventDefault();
     const input = transcript || userInput;
     if (!input.trim()) return;
+
+    // Clear the timeout to prevent double submission
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current);
+    }
 
     // Stop listening temporarily
     if (recognitionRef.current && isListening) {
