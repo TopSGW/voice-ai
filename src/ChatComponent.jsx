@@ -9,9 +9,17 @@ const ChatComponent = () => {
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [transcript, setTranscript] = useState('');
-
+  
+  const messagesContainerRef = useRef(null);
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
+
+  // Scroll to bottom whenever conversation history changes
+  useEffect(() => {
+    if (messagesContainerRef.current) {
+      messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
+    }
+  }, [conversationHistory, isSpeaking]);
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -92,7 +100,7 @@ const ChatComponent = () => {
   };
 
   return (
-    <div className="flex flex-col h-full bg-gray-100">
+    <div className="flex flex-col h-screen bg-gray-100">
       <div className="bg-blue-600 text-white p-3 flex justify-between items-center">
         <h2 className="text-lg font-semibold">AI Assistant</h2>
         <div className="flex items-center space-x-2 text-sm">
@@ -101,7 +109,11 @@ const ChatComponent = () => {
         </div>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4">
+      <div 
+        ref={messagesContainerRef}
+        className="flex-1 overflow-y-auto p-4 space-y-4" 
+        style={{ maxHeight: 'calc(100vh - 130px)' }}
+      >
         {conversationHistory.map((message, index) => (
           <div
             key={index}
