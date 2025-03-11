@@ -2,12 +2,21 @@ import React, { useState, useEffect, useRef } from 'react';
 import { FaPaperPlane, FaPhone, FaPhoneSlash } from 'react-icons/fa';
 import axios from 'axios';
 
+const TypingAnimation = () => (
+  <div className="flex items-center space-x-2 animate-pulse">
+    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+    <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
+  </div>
+);
+
 const ChatComponent = () => {
   const [userInput, setUserInput] = useState('');
   const [conversationHistory, setConversationHistory] = useState([]);
   const [isCallActive, setIsCallActive] = useState(false);
   const [isListening, setIsListening] = useState(false);
   const [isSpeaking, setIsSpeaking] = useState(false);
+  const [isAiResponding, setIsAiResponding] = useState(false);
   const [transcript, setTranscript] = useState('');
   
   const messagesContainerRef = useRef(null);
@@ -19,7 +28,7 @@ const ChatComponent = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
-  }, [conversationHistory, isSpeaking]);
+  }, [conversationHistory, isSpeaking, isAiResponding]);
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -64,16 +73,19 @@ const ChatComponent = () => {
     if (!input.trim()) return;
 
     setConversationHistory(prev => [...prev, { role: 'user', content: input }]);
+    setIsAiResponding(true);
 
     try {
       const response = await axios.post('http://3.106.129.114:8000/chat', { user_input: input });
       const ai_response = response.data.ai_response;
 
       setConversationHistory(prev => ([...prev, { role: 'assistant', content: ai_response }]));
+      setIsAiResponding(false);
 
       speakMessage(ai_response);
     } catch (error) {
       console.error('Error fetching AI response:', error);
+      setIsAiResponding(false);
     }
 
     setTranscript('');
@@ -137,6 +149,14 @@ const ChatComponent = () => {
             </div>
           </div>
         )}
+        {isAiResponding && (
+          <div className="flex justify-start animate-fade-in">
+            <div className="bg-gray-200 text-gray-800 rounded-lg p-3 shadow-sm flex items-center space-x-2">
+              <span>AI is typing</span>
+              <TypingAnimation />
+            </div>
+          </div>
+        )}
       </div>
 
       <form onSubmit={(e) => e.preventDefault()} className="bg-white p-3 flex items-center space-x-2">
@@ -146,7 +166,7 @@ const ChatComponent = () => {
           onChange={(e) => setUserInput(e.target.value)}
           placeholder="Type your message here..."
           className="flex-1 border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
-          disabled={isListening || isSpeaking}
+          disabled={isListening || isSpeaking || isAiResponding}
         />
 
         <button
@@ -156,7 +176,7 @@ const ChatComponent = () => {
             setUserInput('');
           }}
           className="bg-blue-500 text-white px-3 py-2 rounded-lg hover:bg-blue-600 transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500 flex items-center space-x-1 text-sm"
-          disabled={!userInput.trim()}
+          disabled={!userInput.trim() || isAiResponding}
         >
           <FaPaperPlane />
         </button>
@@ -166,6 +186,7 @@ const ChatComponent = () => {
           className={`p-2 rounded-full ${
             isCallActive ? 'bg-red-500 hover:bg-red-600' : 'bg-green-500 hover:bg-green-600'
           } text-white transition-all duration-300 focus:outline-none focus:ring-2 focus:ring-blue-500`}
+          disabled={isAiResponding}
         >
           {isCallActive ? <FaPhoneSlash /> : <FaPhone />}
         </button>
