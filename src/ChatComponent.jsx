@@ -23,6 +23,7 @@ const ChatComponent = () => {
   const messagesContainerRef = useRef(null);
   const recognitionRef = useRef(null);
   const silenceTimerRef = useRef(null);
+  const utteranceRef = useRef(null);
 
   // Scroll to bottom whenever conversation history changes
   useEffect(() => {
@@ -30,6 +31,15 @@ const ChatComponent = () => {
       messagesContainerRef.current.scrollTop = messagesContainerRef.current.scrollHeight;
     }
   }, [conversationHistory, isSpeaking, isAiResponding]);
+
+  // Clean up speech synthesis on component unmount
+  useEffect(() => {
+    return () => {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+    };
+  }, []);
 
   useEffect(() => {
     if ('SpeechRecognition' in window || 'webkitSpeechRecognition' in window) {
@@ -94,7 +104,7 @@ const ChatComponent = () => {
     setIsAiResponding(true);
 
     try {
-      const response = await axios.post('http://3.106.129.114:8000/chat', { user_input: input });
+      const response = await axios.post('http://3.106.129.114:8000/chat', { user_input: input, conversation_history: conversationHistory });
       const ai_response = response.data.ai_response;
 
       setConversationHistory(prev => ([...prev, { role: 'assistant', content: ai_response }]));
@@ -111,15 +121,34 @@ const ChatComponent = () => {
 
   const speakMessage = (message) => {
     if ('speechSynthesis' in window) {
+      // Cancel any ongoing speech
+      window.speechSynthesis.cancel();
+      
       setIsSpeaking(true);
-      const utterance = new SpeechSynthesisUtterance(message);
-      utterance.onend = () => setIsSpeaking(false);
-      window.speechSynthesis.speak(utterance);
+      utteranceRef.current = new SpeechSynthesisUtterance(message);
+      
+      utteranceRef.current.onend = () => {
+        setIsSpeaking(false);
+      };
+      
+      utteranceRef.current.onerror = () => {
+        console.error('Speech synthesis error');
+        setIsSpeaking(false);
+      };
+      
+      window.speechSynthesis.speak(utteranceRef.current);
     }
   };
 
   const toggleCall = () => {
     if (isCallActive) {
+      // First cancel any ongoing speech
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+        setIsSpeaking(false);
+      }
+      
+      // Then stop recognition
       recognitionRef.current.stop();
       setIsListening(false);
       
