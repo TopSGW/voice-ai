@@ -18,6 +18,7 @@ const ChatComponent = () => {
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [isAiResponding, setIsAiResponding] = useState(false);
   const [transcript, setTranscript] = useState('');
+  const [finalTranscript, setFinalTranscript] = useState('');
   
   const messagesContainerRef = useRef(null);
   const recognitionRef = useRef(null);
@@ -40,17 +41,34 @@ const ChatComponent = () => {
       recognitionRef.current.onresult = (event) => {
         let currentTranscript = '';
         for (let i = event.resultIndex; i < event.results.length; ++i) {
-          currentTranscript += event.results[i][0].transcript;
+          // Only add to final transcript if result is final
+          if (event.results[i].isFinal) {
+            setFinalTranscript(prev => prev + ' ' + event.results[i][0].transcript);
+          } else {
+            currentTranscript += event.results[i][0].transcript;
+          }
         }
+        
+        // Update the live transcript display
         setTranscript(currentTranscript);
 
+        // Reset the silence timer
         if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
 
+        // Set a new silence timer
         silenceTimerRef.current = setTimeout(() => {
           recognitionRef.current.stop();
           setIsListening(false);
-          handleUserInput(currentTranscript.trim());
+          
+          // Combine final transcript with any remaining current transcript
+          const completeInput = (finalTranscript + ' ' + currentTranscript).trim();
+          if (completeInput) {
+            handleUserInput(completeInput);
+          }
+          
+          // Reset transcripts
           setTranscript('');
+          setFinalTranscript('');
         }, 2500); // 2.5 second of silence triggers send
       };
 
@@ -67,7 +85,7 @@ const ChatComponent = () => {
       if (recognitionRef.current) recognitionRef.current.stop();
       if (silenceTimerRef.current) clearTimeout(silenceTimerRef.current);
     };
-  }, []);
+  }, [finalTranscript]);
 
   const handleUserInput = async (input) => {
     if (!input.trim()) return;
@@ -104,6 +122,16 @@ const ChatComponent = () => {
     if (isCallActive) {
       recognitionRef.current.stop();
       setIsListening(false);
+      
+      // Process any remaining transcript before ending call
+      const completeInput = (finalTranscript + ' ' + transcript).trim();
+      if (completeInput) {
+        handleUserInput(completeInput);
+      }
+      
+      // Reset transcripts
+      setTranscript('');
+      setFinalTranscript('');
     } else {
       recognitionRef.current.start();
       setIsListening(true);
@@ -194,7 +222,8 @@ const ChatComponent = () => {
 
       {isListening && (
         <div className="bg-yellow-100 p-2 text-sm text-gray-800 border-t border-yellow-200">
-          Listening: {transcript}
+          <div className="font-semibold">Captured: {finalTranscript}</div>
+          <div>Listening: {transcript}</div>
         </div>
       )}
     </div>
